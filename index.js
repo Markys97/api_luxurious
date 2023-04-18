@@ -47,5 +47,27 @@ app.get('/listProduct', (req, res) => {
 })
 
 
+app.get('/listCategory', (req, res) => {
+    let listproduct;
+     connection.query('SELECT * FROM `category`',
+      function (error, results, fields) {
+        if(error) throw error
+        listproduct= results
+        res.json(listproduct)
+     })
+})
+
+
+app.get('/recentProduct', (req, res) => {
+    let listproduct;
+     connection.query('SELECT id, imgs->>"$.preview" AS img_preview FROM `product` ORDER BY `date_in` DESC  LIMIT 3',
+      function (error, results, fields) {
+        if(error) throw error
+        listproduct= results
+        res.json(listproduct)
+     })
+})
+
+
 // run server
 app.listen(port , ()=> console.log(`app run on port ${port}`))
