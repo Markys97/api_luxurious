@@ -8,7 +8,7 @@ const port = process.env.PORT||3500;
 
 
 
-//database set upclear
+//database set up
 const connection = mysql.createConnection({
     host     :process.env.DB_HOST,
     user     : process.env.DB_USER,
@@ -29,6 +29,7 @@ connection.connect(function(err) {
 
 // middleware
 app.use(cors())
+app.use(express.static(__dirname+'/public'))
 
 // route
 app.get('/', (req, res) => {
