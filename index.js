@@ -36,6 +36,7 @@ app.get('/', (req, res) => {
     res.send('Hello World!')
 })
 
+
 app.get('/listProduct', (req, res) => {
     let listproduct;
      connection.query('SELECT * FROM `product`',
@@ -78,7 +79,7 @@ app.get('/product/:id',(req,res)=>{
     return 
   }
 
-  connection.query('SELECT colors,name,price,genre,state,description, JSON_EXTRACT(imgs,"$.all") AS imgs,JSON_EXTRACT(imgs,"$.preview") as preview FROM `product` WHERE `id`=?',[id],(err,results,fields)=>{
+  connection.query('SELECT colors,name,price,genre,description, JSON_EXTRACT(imgs,"$.size") AS size, JSON_EXTRACT(imgs,"$.all") AS imgs,JSON_EXTRACT(imgs,"$.preview") as preview FROM `product` WHERE `id`=?',[id],(err,results,fields)=>{
     if(err) throw err
 
     res.status(200).json(results)
