@@ -68,6 +68,26 @@ app.get('/recentProduct', (req, res) => {
      })
 })
 
+app.get('/product/:id',(req,res)=>{
+  const id = req.params.id;
+  const isGoodId = /^[0-9]+$/;
+  let data;
+  
+  if(!isGoodId.test(id)){
+    res.status(404).send('bad params')
+    return 
+  }
+
+  connection.query('SELECT colors,name,price,genre,state,description, JSON_EXTRACT(imgs,"$.all") AS imgs,JSON_EXTRACT(imgs,"$.preview") as preview FROM `product` WHERE `id`=?',[id],(err,results,fields)=>{
+    if(err) throw err
+
+    res.status(200).json(results)
+  })
+  
+
+ 
+})
+
 
 // run server
 app.listen(port , ()=> console.log(`app run on port ${port}`))
