@@ -34,6 +34,8 @@ const  sendEmail = async (myMail,MyEmailPassword,to,subject,message)=>{
 
 
 
+
+
 //database set up
 const connection = mysql.createConnection({
     host     :process.env.DB_HOST,
@@ -102,6 +104,7 @@ app.get('/product/:id',(req,res)=>{
   const id = req.params.id;
   const isGoodId = /^[0-9]+$/;
   let data;
+
   
   if(!isGoodId.test(id)){
     res.status(404).send('bad params')
@@ -125,19 +128,37 @@ app.post('/user/confirm-email',(req,res)=>{
   data = JSON.parse(data);
   const userEmail= data.email;
 
- let token = Date.now().toString().slice(9,13)
+  let token = Date.now().toString().slice(9,13)
 
   const emailRegex = new RegExp(/^[A-Za-z0-9_!#$%&'*+\/=?`{|}~^.-]+@[A-Za-z0-9.-]+$/, "gm");
 
-  if(!emailRegex.test(userEmail))  res.status(400).send('bad email')
+  if(!emailRegex.test(userEmail)){
+    res.status(400).send('bad email')
+  }else{
+    sendEmail(process.env.EMAIL,process.env.EMAIL_PASSWORD,process.env.EMAIL,'juste a test ',`ton code est <b>${token}</b>`)
+    .then(data => {
+      if(data.messageId){
+        res.status(200).json({"code":`${token}`})
+      }
+    })
+  }
 
+
+  
+})
+
+app.post('/user/get-code-confirm', (req,res)=>{
+  let token = Date.now().toString().slice(9,13)
+  console.log(req.body)
   sendEmail(process.env.EMAIL,process.env.EMAIL_PASSWORD,process.env.EMAIL,'juste a test ',`ton code est <b>${token}</b>`)
   .then(data => {
     if(data.messageId){
       res.status(200).json({"code":`${token}`})
+       
     }
   })
-  
+  .catch(()=>  res.status(400).send('bad email'))
+
 })
 
 
