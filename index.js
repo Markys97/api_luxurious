@@ -178,7 +178,6 @@ app.post("/user/save-data",(req,res)=>{
         if(password === password_confirm){
           connection.query("INSERT INTO user (`pseudo`,`email`,`phone`,`password`,`created`) VALUES (?,?,?,?,NOW())",[name,email,phone,hash],(err,result)=>{
               if(err) throw err
-              console.log('sent')
               res.status(200).send('ok')
             }
             )
@@ -187,6 +186,30 @@ app.post("/user/save-data",(req,res)=>{
     });
 });
 
+})
+
+app.post('/user/sign-in',(req,res)=>{
+  const data = req.body.body;
+  const{email,password} = JSON.parse(data);
+  // check yes email
+  connection.query('SELECT COUNT(email) AS hasEmail,password AS hash FROM user WHERE email =?',[email],(err,result)=>{
+    if(err) throw err
+    if(result[0].hasEmail===1){
+
+      bcrypt.compare(password, result[0].hash, function(err, result) {
+        if(err) throw err
+       if(result){
+         res.status(200).send('ok')
+       }else{
+         res.status(200).send('error')
+       }
+      });
+      
+    }else{
+     res.status(200).send('error')
+    }
+  })
+ 
 })
 
 
