@@ -4,7 +4,7 @@ const mysql= require('mysql');
 const app = express();
 const bodyParser = require('body-parser');
 const nodemailer = require('nodemailer');
-
+const bcrypt = require('bcrypt');
 
 require('dotenv').config()
 
@@ -124,7 +124,6 @@ app.get('/product/:id',(req,res)=>{
 app.post('/user/confirm-email',(req,res)=>{
   let data = req.body.body;
   let currentLang = req.body.header.lang
-  console.log(currentLang)
   data = JSON.parse(data);
   const userEmail= data.email;
 
@@ -133,13 +132,19 @@ app.post('/user/confirm-email',(req,res)=>{
   const emailRegex = new RegExp(/^[A-Za-z0-9_!#$%&'*+\/=?`{|}~^.-]+@[A-Za-z0-9.-]+$/, "gm");
 
   if(!emailRegex.test(userEmail)){
-    res.status(400).send('bad email')
+    res.status(200).send('bad email')
   }else{
-    sendEmail(process.env.EMAIL,process.env.EMAIL_PASSWORD,process.env.EMAIL,'juste a test ',`ton code est <b>${token}</b>`)
-    .then(data => {
-      if(data.messageId){
-        res.status(200).json({"code":`${token}`})
-      }
+    connection.query('SELECT COUNT(email) AS numberEmail FROM user WHERE email=?',[userEmail],(err,response)=>{
+      if(err) throw err
+      response[0].numberEmail
+      if( response[0].numberEmail !==0) return res.status(200).send('email busy')
+
+      sendEmail(process.env.EMAIL,process.env.EMAIL_PASSWORD,process.env.EMAIL,'juste a test ',`ton code est <b>${token}</b>`)
+      .then(data => {
+        if(data.messageId){
+          res.status(200).json({"code":`${token}`})
+        }
+      })
     })
   }
 
@@ -149,7 +154,7 @@ app.post('/user/confirm-email',(req,res)=>{
 
 app.post('/user/get-code-confirm', (req,res)=>{
   let token = Date.now().toString().slice(9,13)
-  console.log(req.body)
+
   sendEmail(process.env.EMAIL,process.env.EMAIL_PASSWORD,process.env.EMAIL,'juste a test ',`ton code est <b>${token}</b>`)
   .then(data => {
     if(data.messageId){
@@ -158,6 +163,29 @@ app.post('/user/get-code-confirm', (req,res)=>{
     }
   })
   .catch(()=>  res.status(400).send('bad email'))
+
+})
+
+app.post("/user/save-data",(req,res)=>{
+  let data = req.body.body;
+  data = JSON.parse(data)
+  const {name,email,phone,password,password_confirm} = data
+  const saltRounds = 10;
+
+  bcrypt.genSalt(saltRounds, function(err, salt) {
+    bcrypt.hash(password, salt, function(err, hash) {
+        if(err) throw err
+        if(password === password_confirm){
+          connection.query("INSERT INTO user (`pseudo`,`email`,`phone`,`password`,`created`) VALUES (?,?,?,?,NOW())",[name,email,phone,hash],(err,result)=>{
+              if(err) throw err
+              console.log('sent')
+              res.status(200).send('ok')
+            }
+            )
+        }
+        
+    });
+});
 
 })
 
